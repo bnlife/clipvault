@@ -425,11 +425,62 @@ async function seed() {
     for (const s of samples) await dbAdd(s);
 }
 
+// ---- Tag Templates ----
+const TAG_TEMPLATES = ["带货","美妆","测评","探店","美食","口播","运营","知识","剧情","Vlog",
+    "职场","武侠","传统文化","非遗","剑术","电影化","舞蹈","反差","宿舍","音乐","怀旧",
+    "情绪","手工艺","纪录片感","生活","陪伴","东方美学","海外","银发","军旅","正能量",
+    "搞笑","农村","宠物","育儿","家居","旅行","时尚","健身","科技","校园"];
+
+// ---- Paste from Clipboard ----
+async function pasteFromClipboard() {
+    try {
+        const text = await navigator.clipboard.readText();
+        if (!text || !text.trim()) {
+            alert("剪贴板为空。请先从豆包复制分析文本。");
+            return;
+        }
+        editingId = null;
+        clearEditor();
+        document.getElementById("editBody").value = text.trim();
+        // Auto-extract title: first line, remove leading # or numbers
+        const firstLine = text.trim().split("\n")[0].replace(/^[#\d\s\.、．·]+/, "").trim();
+        document.getElementById("editTitle").value = firstLine.slice(0, 60);
+        // Suggest tags based on content
+        const suggested = TAG_TEMPLATES.filter(t => text.includes(t));
+        document.getElementById("editTags").value = suggested.join(", ");
+        showPanel("editPanel");
+    } catch (e) {
+        alert("无法读取剪贴板。请手动点「+」按钮，长按粘贴。\n\n（iOS 需要用户交互才能读剪贴板，点这个按钮本身就是交互）");
+    }
+}
+
+// ---- Export JSON ----
+function exportJSON() {
+    const data = entries.map(e => ({
+        title: e.title,
+        date: e.date,
+        tags: e.tags,
+        content: e.content
+    }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `clipvault_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 // ---- Init ----
 async function init() {
     await openDB();
     await seed();
     await refresh();
+
+    // Paste button
+    document.getElementById("pasteBtn").addEventListener("click", pasteFromClipboard);
+    // Export button
+    document.getElementById("exportBtn").addEventListener("click", exportJSON);
 
     // Add button in header
     const addBtn = document.createElement("button");
