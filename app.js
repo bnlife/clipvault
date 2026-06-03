@@ -492,6 +492,22 @@ async function init() {
         showPanel("editPanel");
     };
     document.querySelector(".hdr-top").appendChild(addBtn);
+
+    // Handle share target (Web Share Target API)
+    const params = new URLSearchParams(window.location.search);
+    const sharedText = params.get("text");
+    if (sharedText && sharedText.trim()) {
+        editingId = null;
+        clearEditor();
+        document.getElementById("editBody").value = sharedText.trim();
+        const firstLine = sharedText.trim().split("\n")[0].replace(/^[#\d\s\.、．·]+/, "").trim();
+        document.getElementById("editTitle").value = firstLine.slice(0, 60);
+        const suggested = TAG_TEMPLATES.filter(t => sharedText.includes(t));
+        document.getElementById("editTags").value = suggested.join(", ");
+        showPanel("editPanel");
+        // Clean URL
+        window.history.replaceState({}, "", "/");
+    }
 }
 
 init();
