@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+<title>ClipVault</title>
+</head>
+<body>
+
+<header>
+    <div class="hdr-top">
+        <h1>ClipVault</h1>
+        <span class="hdr-count" id="totalBadge">0条</span>
+    </div>
+    <div class="tabs">
+        <button class="tab on" onclick="switchTab(0,this)">案例库</button>
+        <button class="tab" onclick="switchTab(1,this)">趋势</button>
+        <button class="tab" onclick="switchTab(2,this)">对比</button>
+        <button class="tab" onclick="switchTab(3,this)">注意力</button>
+    </div>
+</header>
+
+<!-- 案例库 -->
+<div class="panel active" id="p0">
+    <div class="search-wrap">
+        <input type="text" placeholder="搜索…" id="searchInput">
+        <select id="tagFilter"><option value="">全部标签</option></select>
+    </div>
+    <div id="clusterList"></div>
+</div>
+
+<!-- 趋势 -->
+<div class="panel" id="p1">
+    <div class="section-label">本月上升</div>
+    <div id="trendUp"></div>
+    <div class="section-label">本月下降</div>
+    <div id="trendDown"></div>
+    <div class="section-label">标签分布</div>
+    <div id="tagCloud"></div>
+</div>
+
+<!-- 对比 -->
+<div class="panel" id="p2">
+    <div class="search-wrap">
+        <select id="comparePick"><option value="">选择案例…</option></select>
+    </div>
+    <div id="compareResult"></div>
+</div>
+
+<!-- 注意力 -->
+<div class="panel" id="p3">
+    <div id="attentionResult"></div>
+</div>
+
+<!-- 详情 -->
+<div class="panel" id="detailPanel">
+    <div class="detail-hdr">
+        <button onclick="hideDetail()">← 返回</button>
+        <button onclick="editCurrent()" style="color:#0984e3;">编辑</button>
+    </div>
+    <div id="detailContent"></div>
+</div>
+
+<!-- 编辑 -->
+<div class="panel" id="editPanel">
+    <div class="detail-hdr">
+        <button onclick="hideEditor()">← 返回</button>
+        <button onclick="saveEntry()" style="color:#0984e3;">保存</button>
+        <button onclick="deleteEntry()" style="color:#d63031;">删除</button>
+    </div>
+    <input type="text" id="editTitle" placeholder="标题">
+    <textarea id="editBody" rows="14" placeholder="粘贴豆包分析结果…"></textarea>
+    <input type="text" id="editTags" placeholder="标签（逗号分隔）">
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

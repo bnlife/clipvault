@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ClipVault — 1000条数据分析</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:16px; }
+body {
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f2f2f7; color: #1a1a1a;
+    max-width: 430px; margin:0 auto; padding-bottom: 40px;
+}
+header {
+    background: #fff; padding: 14px 16px 0;
+    position: sticky; top: 0; z-index: 10;
+}
+header h1 { font-size: 19px; font-weight: 700; margin-bottom: 2px; }
+header .sub { font-size: 11px; color: #999; margin-bottom: 10px; }
+
+/* tabs */
+.tabs { display:flex; gap: 0; }
+.tab {
+    flex:1; padding: 10px 4px; border: none; background: none;
+    font-size: 13px; color: #999; cursor: pointer; text-align: center;
+    border-bottom: 2px solid transparent;
+}
+.tab.on { color: #0984e3; border-bottom-color: #0984e3; font-weight: 600; }
+
+/* panels */
+.panel { display: none; padding: 14px 16px; }
+.panel.active { display: block; }
+
+/* stats */
+.stats {
+    display:flex; gap:6px; margin-bottom:16px;
+}
+.stat {
+    flex:1; background:#fff; border-radius:10px; padding:14px 10px; text-align:center;
+}
+.stat .n { font-size:22px; font-weight:700; color:#0984e3; }
+.stat .l { font-size:10px; color:#999; margin-top:2px; }
+
+/* search */
+.search-wrap { margin-bottom:14px; }
+.search-wrap input {
+    width:100%; border:1px solid #e0e0e0; border-radius:10px; padding:10px 14px;
+    font-size:15px; background:#fff; outline:none;
+}
+.search-wrap input:focus { border-color:#0984e3; }
+
+/* cards */
+.card {
+    background:#fff; border-radius:10px; padding:14px; margin-bottom:10px;
+    border:1px solid #f0f0f0;
+}
+.card .title { font-size:14px; font-weight:600; margin-bottom:4px; line-height:1.4; }
+.card .meta { font-size:11px; color:#999; margin-bottom:6px; display:flex; gap:5px; flex-wrap:wrap; align-items:center; }
+.card .body { font-size:13px; color:#555; line-height:1.65; }
+
+/* tag */
+.tg { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:500; }
+.tg-blue { background:#e8f4fd; color:#0984e3; }
+.tg-red { background:#ffe8e8; color:#d63031; }
+.tg-green { background:#e8ffe8; color:#00b894; }
+.tg-orange { background:#fff3e8; color:#e17055; }
+
+/* section label */
+.sec-label {
+    font-size:12px; font-weight:600; color:#888; margin:16px 0 8px 0;
+    padding-left:8px; border-left:3px solid #0984e3;
+}
+
+/* trend bars */
+.t-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; }
+.t-name { width:90px; text-align:right; color:#555; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.t-bar-w { flex:1; height:24px; background:#f0f0f0; border-radius:5px; overflow:hidden; }
+.t-bar-f { height:100%; border-radius:5px; display:flex; align-items:center; padding-left:8px; color:#fff; font-size:11px; font-weight:600; }
+.t-chn { width:40px; font-size:11px; text-align:left; flex-shrink:0; }
+
+/* compare */
+.diff-grid { display:flex; gap:8px; margin-bottom:8px; }
+.diff-col { flex:1; background:#fff; border-radius:8px; padding:10px; border:1px solid #f0f0f0; }
+.diff-col.hl { border:2px solid #0984e3; background:#f0f7ff; }
+.diff-col .dl { font-size:10px; color:#999; margin-bottom:3px; }
+.diff-col .dv { font-size:12px; color:#333; line-height:1.5; }
+
+/* timeline */
+.tline { margin-bottom:14px; }
+.tline-hd { display:flex; justify-content:space-between; margin-bottom:4px; }
+.tline-mo { font-size:13px; font-weight:600; color:#555; }
+.tline-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:2px; }
+.tline-tag { display:inline-block; padding:3px 8px; border-radius:12px; font-size:11px; color:#fff; margin-bottom:3px; }
+.tline-sum { font-size:11px; color:#999; margin-top:2px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>ClipVault</h1>
+    <div class="sub">1,024 条案例 · 47 个标签 · 12 个赛道</div>
+    <div class="tabs">
+        <button class="tab on" onclick="switchPanel(0,this)">📋 案例库</button>
+        <button class="tab" onclick="switchPanel(1,this)">📈 趋势</button>
+        <button class="tab" onclick="switchPanel(2,this)">🔍 对比</button>
+        <button class="tab" onclick="switchPanel(3,this)">🗺 注意力</button>
+    </div>
+</header>
+
+<!-- ============ 面板0: 案例库 ============ -->
+<div class="panel active" id="p0">
+    <div class="stats">
+        <div class="stat"><div class="n">1,024</div><div class="l">总案例</div></div>
+        <div class="stat"><div class="n">47</div><div class="l">标签</div></div>
+        <div class="stat"><div class="n">328</div><div class="l">本月新增</div></div>
+        <div class="stat"><div class="n">12</div><div class="l">赛道</div></div>
+    </div>
+    <div class="search-wrap">
+        <input type="text" placeholder="搜索案例… 如: 武侠 剑术 反差" id="s0">
+    </div>
+    <div id="c0"></div>
+</div>
+
+<!-- ============ 面板1: 趋势 ============ -->
+<div class="panel" id="p1">
+    <div class="sec-label">📈 本月上升最快</div>
+    <div id="t-up"></div>
+    <div class="sec-label">📉 本月下降</div>
+    <div id="t-dn"></div>
+    <div class="sec-label">🏷 本月热搜标签</div>
+    <div id="t-hot"></div>
+</div>
+
+<!-- ============ 面板2: 对比 ============ -->
+<div class="panel" id="p2">
+    <div style="font-size:12px;color:#888;margin-bottom:10px">选一条案例，自动找出最相似的3条，标注异同</div>
+    <div class="search-wrap">
+        <select id="s2" style="width:100%;border:1px solid #e0e0e0;border-radius:10px;padding:10px 14px;font-size:14px;background:#fff;">
+            <option value="0">剑影映丹心，笔墨照千秋</option>
+            <option value="7">冬天这么冷 还跳得汗流浃背</option>
+            <option value="14">厨房清洁剂直播切片</option>
+            <option value="11">成都社区火锅探店</option>
+        </select>
+    </div>
+    <div id="c2"></div>
+</div>
+
+<!-- ============ 面板3: 注意力地图 ============ -->
+<div class="panel" id="p3">
+    <div style="font-size:12px;color:#888;margin-bottom:14px">每个月分析最多的内容类型在怎么变？</div>
+    <div id="c3"></div>
+</div>
+
+<script>
+// ============================================================
+//  DATA — 20条模拟案例（豆包真实输出格式）
+// ============================================================
+const DB = [
+    {id:1,t:"剑影映丹心，笔墨照千秋",m:"2026-06",tg:["武侠","传统文化","剑术","电影化"],hot:1,
+     s:"选题聚焦"中式剑术"，结合#剑来 #传统文化标签，精准触达武术爱好者。动作专业度高，电影化运镜+荒野城市切换，营造武侠大片质感。评论区文化认同式互动活跃，"这才是刻在中国人骨里的浪漫"。爆发核心：传统文化+专业呈现+电影化包装。"},
+    {id:2,t:"少林武僧日常练功",m:"2026-06",tg:["武侠","传统文化","少林"],hot:1,
+     s:"少林武僧真实生活记录，晨练、打坐、拳法展示。真实感+少林IP双重加持，评论区大量"想去少林"。数据亮点：完播率62%，收藏/点赞比18%。"},
+    {id:3,t:"太极剑在巴黎街头",m:"2026-06",tg:["剑术","传统文化","反差","海外"],hot:1,
+     s:"巴黎街头表演太极剑，外国路人围观惊叹。文化输出+反差场景，"这才是文化自信"情感共鸣极强。海外华人转发量大，跨平台传播。"},
+    {id:4,t:"古风剑舞MV《将进酒》",m:"2026-05",tg:["剑术","传统文化","电影化","古风"],hot:1,
+     s:"剑术融入古典舞，配李白诗朗诵，画面如电影。武术与舞蹈的跨界融合，吸引两个圈层。BGM选用古琴+电子，传统与现代碰撞。"},
+    {id:5,t:"川剧变脸+剑术融合",m:"2026-05",tg:["剑术","传统文化","非遗","反差"],hot:0,
+     s:"川剧演员将变脸绝活融入剑术表演，一招一式中突然变脸。非遗+武术的双重稀缺性。评论："这手绝活可以看一百遍"。"},
+    {id:6,t:"军营武术训练实录",m:"2026-05",tg:["武侠","军旅","反差"],hot:0,
+     s:"武警战士训练间隙展示武术动作，硬汉形象+真实场景。评论区"这才是真功夫"认可度高。拍摄手法朴实但内容扎实。"},
+    {id:7,t:"冬天这么冷还跳得汗流浃背",m:"2026-06",tg:["舞蹈","宿舍","反差"],hot:1,
+     s:"宿舍日常+热门舞蹈，冬天穿厚外套跳舞的反差设定。接地气的生活化风格，从"表演"变成"朋友分享"。评论区"我在宿舍也这么跳过"集体回忆。"},
+    {id:8,t:"军训休息即兴街舞",m:"2026-06",tg:["舞蹈","反差","操场"],hot:0,
+     s:"大一新生军训间隙即兴跳街舞，迷彩服+Breaking动作巨大反差。评论区集体回忆军训，"这哥们绝对是舞蹈社的"。"},
+    {id:9,t:"60岁阿姨跳女团舞",m:"2026-05",tg:["舞蹈","反差","银发"],hot:1,
+     s:"广场舞阿姨挑战K-pop女团舞。银发+潮流舞蹈反差拉满，"我老了也要这样"评论区正向情绪高度集中。转发量超过同龄段内容均值3倍。"},
+    {id:10,t:"雨中芭蕾街头即兴",m:"2026-05",tg:["舞蹈","艺术","反差","城市"],hot:0,
+     s:"芭蕾舞者雨天街头即兴起舞，雨水+白裙+城市背景。诗意与日常的碰撞。拍摄者为路人，视角自然。评论"这才是浪漫"。"},
+    {id:11,t:"成都社区火锅探店",m:"2026-06",tg:["探店","美食","成都"],hot:1,
+     s:"成都老社区苍蝇火锅馆，人均40元。排队两小时真实记录+低价反差。"这个社区我住了十年都不知道！"本地人视角的可信度极强。"},
+    {id:12,t:"杭帮菜市场隐藏小吃",m:"2026-05",tg:["探店","美食","杭州","本地"],hot:0,
+     s:"杭州菜市场30年老字号葱包烩摊。本地人+老字号组合，"这才是杭州味道"。平价美食类完播率普遍高于探店类均值。"},
+    {id:13,t:"重庆洞子火锅探秘",m:"2026-04",tg:["探店","美食","重庆","反差"],hot:1,
+     s:"防空洞里吃火锅，温度18度但火锅沸腾。场景独特性+山城文化，"重庆人表示这是日常"。"},
+    {id:14,t:"厨房清洁剂直播切片",m:"2026-06",tg:["带货","家居","反差"],hot:1,
+     s:"左右对比视觉冲击：糊满油渍→一喷一抹干净。限时下单送替换装，收藏/点赞比22.6%。实用性驱动高转化。缺少真人出镜是短板。"},
+    {id:15,t:"美妆口红多肤色测评",m:"2026-06",tg:["美妆","带货","测评"],hot:0,
+     s:"同支口红在不同肤色上唇对比+价格锚点（专柜299→直播间79）。评论区"色号""链接"转化明确。可优化点：加入持久度测试。"},
+    {id:16,t:"短视频运营三要素",m:"2026-05",tg:["口播","运营","知识"],hot:1,
+     s:"完播率>点赞数、评论深度权重上升、最佳发布窗口。信息密度280字/分钟。可拆为3条独立短内容。评论大量创作者反馈。"},
+    {id:17,t:"口播黄金3秒公式",m:"2026-04",tg:["口播","运营","知识"],hot:0,
+     s:"总结50条爆款口播前3秒，提炼5种开场模式：提问式、反转式、数据式、故事式、悬念式。创作者实战反馈验证了排序。"},
+    {id:18,t:"Vlog产品经理的一天",m:"2026-06",tg:["Vlog","职场","纪实"],hot:0,
+     s:"从起床到下班，真实记录产品经理一天。情感共鸣>信息增量，属陪伴型内容。同类多炫福利，这条突出真实压力，差异化明显。"},
+    {id:19,t:"深夜加班的便利店",m:"2026-05",tg:["Vlog","职场","情感"],hot:0,
+     s:"凌晨1点便利店，记录加班人沉默时刻。BGM《深夜食堂》，评论大量"我也是这样"情感共鸣。第一人称手机拍摄，真实感强。"},
+    {id:20,t:"外卖小哥的暖心瞬间",m:"2026-05",tg:["温暖","纪实","正能量"],hot:1,
+     s:"帮老人搬米、雨中送餐不催单。真实手机拍摄+自然光，无剧本真实感驱动高完播率（76%）。评论"这个社会还是好人多"正向情绪。"},
+];
+
+// ============================================================
+//  TABS
+// ============================================================
+function switchPanel(idx, btn) {
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("p"+idx).classList.add("active");
+    if(idx===0) renderCluster(document.getElementById("s0").value);
+    if(idx===1) renderTrends();
+    if(idx===2) renderCompare();
+    if(idx===3) renderTimeline();
+}
+
+// ============================================================
+//  PANEL 0: 案例聚类
+// ============================================================
+function renderCluster(q) {
+    let rows = DB;
+    if (q) {
+        const kw = q.toLowerCase().split(/\s+/).filter(Boolean);
+        rows = rows.filter(r => kw.some(w =>
+            r.t.includes(w) || r.tg.some(g=>g.includes(w)) || r.s.includes(w)
+        ));
+    }
+    // group by first tag
+    const grp = {};
+    rows.forEach(r => {
+        const k = r.tg[0];
+        if (!grp[k]) grp[k] = [];
+        grp[k].push(r);
+    });
+
+    let h = "";
+    for (const [k,list] of Object.entries(grp)) {
+        h += `<div class="sec-label">${k} · ${list.length}条</div>`;
+        list.forEach(r => {
+            h += `<div class="card">
+                <div class="title">${r.t} <span style="font-size:10px;color:#999;">· ${r.m}</span></div>
+                <div class="meta">
+                    ${r.hot?`<span class="tg tg-red">🔥 爆款</span>`:`<span class="tg tg-blue">⭐ 热门</span>`}
+                    ${r.tg.map(g=>`<span class="tg tg-blue">${g}</span>`).join(" ")}
+                </div>
+                <div class="body">${r.s}</div>
+            </div>`;
+        });
+    }
+    document.getElementById("c0").innerHTML = h || `<div style="text-align:center;padding:40px;color:#bbb;">没有匹配的案例</div>`;
+}
+document.getElementById("s0").addEventListener("input", function(){
+    renderCluster(this.value);
+});
+
+// ============================================================
+//  PANEL 1: 趋势
+// ============================================================
+function renderTrends() {
+    const up = [
+        {tag:"武侠+传统文化",p:12,c:35},
+        {tag:"反差+日常",p:8,c:26},
+        {tag:"探店+美食",p:22,c:30},
+        {tag:"银发+潮流",p:3,c:12},
+        {tag:"海外+文化输出",p:5,c:14},
+    ];
+    const dn = [
+        {tag:"纯口播知识",p:28,c:21},
+        {tag:"剧情段子",p:18,c:13},
+    ];
+    const hotTags = ["武侠","反差","舞蹈","探店","带货","传统文化","宿舍","银发","海外","非遗"];
+    const maxUp = Math.max(...up.map(u=>Math.max(u.p,u.c)));
+    const maxDn = Math.max(...dn.map(u=>Math.max(u.p,u.c)));
+
+    function bars(arr, max, upClr) {
+        return arr.map(a=>{
+            const pct = Math.round((a.c/max)*100);
+            const clr = upClr ? "#00b894" : "#d63031";
+            const arrow = upClr ? "↑" : "↓";
+            const chg = Math.abs(a.c-a.p);
+            return `<div class="t-row">
+                <div class="t-name">${a.tag}</div>
+                <div class="t-bar-w"><div class="t-bar-f" style="width:${pct}%;background:${clr}">${a.c}条</div></div>
+                <div class="t-chn" style="color:${clr}">${arrow}${chg}</div>
+            </div>`;
+        }).join("");
+    }
+    document.getElementById("t-up").innerHTML = bars(up, maxUp, true);
+    document.getElementById("t-dn").innerHTML = bars(dn, maxDn, false);
+
+    // hot tags cloud
+    document.getElementById("t-hot").innerHTML = hotTags.map(t=>{
+        const cnt = DB.filter(r=>r.tg.includes(t)).length;
+        const sz = 12 + cnt*2;
+        return `<span style="display:inline-block;margin:3px 5px;padding:5px 10px;background:#e8f4fd;color:#0984e3;border-radius:12px;font-size:${sz}px;font-weight:600;">${t}(${cnt})</span>`;
+    }).join("");
+}
+
+// ============================================================
+//  PANEL 2: 对比
+// ============================================================
+function renderCompare() {
+    const idx = parseInt(document.getElementById("s2").value);
+    const target = DB[idx];
+    const others = DB.filter((_,i)=>i!==idx)
+        .map(r=>({...r, overlap: r.tg.filter(g=>target.tg.includes(g)).length}))
+        .filter(r=>r.overlap>=1)
+        .sort((a,b)=>b.overlap-a.overlap)
+        .slice(0,3);
+
+    let h = `<div class="card" style="border:2px solid #0984e3; background:#f0f7ff;">
+        <div style="font-size:10px;color:#0984e3;font-weight:600;margin-bottom:4px">📌 当前案例</div>
+        <div class="title">${target.t}</div>
+        <div class="meta">${target.tg.map(g=>`<span class="tg tg-blue">${g}</span>`).join(" ")} · ${target.m}</div>
+        <div class="body">${target.s}</div>
+    </div>`;
+
+    h += `<div style="font-size:13px;color:#555;margin:12px 0 8px">最相似的 ${others.length} 条历史案例:</div>`;
+
+    others.forEach(r => {
+        const shared = r.tg.filter(g=>target.tg.includes(g));
+        const diff = r.tg.filter(g=>!target.tg.includes(g));
+        h += `<div class="card">
+            <div class="title">${r.t} <span style="font-size:10px;color:#999;">· ${r.m}</span></div>
+            <div class="meta">
+                共有 ${shared.map(g=>`<span class="tg tg-green">${g}</span>`).join(" ")}
+                ${diff.length ? `差异 `+diff.map(g=>`<span class="tg tg-red">${g}</span>`).join(" ") : ""}
+            </div>
+            <div class="body">${r.s.slice(0,100)}...</div>
+        </div>`;
+    });
+    document.getElementById("c2").innerHTML = h;
+}
+document.getElementById("s2").addEventListener("change", renderCompare);
+
+// ============================================================
+//  PANEL 3: 注意力地图
+// ============================================================
+function renderTimeline() {
+    const data = [
+        {mo:"2026年6月", tags:[
+            {n:"武侠+传统文化",v:35,c:"#0984e3"},
+            {n:"舞蹈+反差",v:28,c:"#00b894"},
+            {n:"探店+美食",v:30,c:"#e17055"},
+            {n:"带货+测评",v:22,c:"#6c5ce7"},
+            {n:"Vlog+纪实",v:18,c:"#fdcb6e"},
+        ], sum:"重心转向传统文化和反差类内容，带货稳定增长"},
+        {mo:"2026年5月", tags:[
+            {n:"口播+知识",v:50,c:"#fd79a8"},
+            {n:"探店+美食",v:35,c:"#e17055"},
+            {n:"舞蹈+反差",v:20,c:"#00b894"},
+            {n:"剧情+情感",v:30,c:"#636e72"},
+            {n:"Vlog+职场",v:15,c:"#fdcb6e"},
+        ], sum:"知识口播达到峰值，剧情类热度上升"},
+        {mo:"2026年4月", tags:[
+            {n:"知识+口播",v:40,c:"#fd79a8"},
+            {n:"剧情+段子",v:25,c:"#636e72"},
+            {n:"美食+探店",v:20,c:"#e17055"},
+            {n:"带货+家居",v:18,c:"#6c5ce7"},
+            {n:"育儿+生活",v:22,c:"#a29bfe"},
+        ], sum:"育儿内容突出，知识类延续热度"},
+        {mo:"2026年3月", tags:[
+            {n:"育儿+亲子",v:28,c:"#a29bfe"},
+            {n:"知识+科普",v:25,c:"#fd79a8"},
+            {n:"生活+日常",v:30,c:"#1e90ff"},
+            {n:"带货+美妆",v:20,c:"#6c5ce7"},
+            {n:"美食+本地",v:18,c:"#e17055"},
+        ], sum:"生活和育儿类占主导，春节后内容回暖"},
+        {mo:"2026年2月", tags:[
+            {n:"生活+日常",v:35,c:"#1e90ff"},
+            {n:"育儿+家庭",v:28,c:"#a29bfe"},
+            {n:"美食+年味",v:25,c:"#e17055"},
+            {n:"口播+知识",v:18,c:"#fd79a8"},
+            {n:"带货+礼盒",v:15,c:"#6c5ce7"},
+        ], sum:"春节月，生活/美食/年味内容集中爆发"},
+        {mo:"2026年1月", tags:[
+            {n:"生活+日常",v:30,c:"#1e90ff"},
+            {n:"育儿+亲子",v:22,c:"#a29bfe"},
+            {n:"美食+探店",v:18,c:"#e17055"},
+            {n:"知识+分享",v:20,c:"#fd79a8"},
+            {n:"带货+年货",v:12,c:"#6c5ce7"},
+        ], sum:"年初以生活记录为主，带货预热春节档"},
+    ];
+
+    const maxV = Math.max(...data.flatMap(d=>d.tags.map(t=>t.v)));
+    let h = "";
+    data.forEach(d => {
+        h += `<div class="tline">
+            <div class="tline-hd"><span class="tline-mo">${d.mo}</span><span style="font-size:11px;color:#999">Top5标签</span></div>
+            <div class="tline-row">`;
+        d.tags.forEach(t => {
+            const pct = Math.round(t.v/maxV*100);
+            h += `<span class="tline-tag" style="background:${t.c};opacity:${0.25+pct/130}">${t.n} ${t.v}条</span>`;
+        });
+        h += `</div>
+            <div class="tline-sum">→ ${d.sum}</div>
+        </div>`;
+    });
+    h += `<div style="background:#fff;border-radius:10px;padding:14px;margin-top:10px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">📌 半年趋势总结</div>
+        <div style="font-size:12px;color:#555;line-height:1.8">
+        1月 → 6月，分析重心从 <b>生活/育儿</b> → <b>知识/口播</b> → <b>武侠/传统文化/反差</b>
+        <br>• 探店/美食类全年稳定，属于基础赛道
+        <br>• 带货类从"年货/礼盒"演化为"家居/测评"
+        <br>• 5月起反差+文化类异军突起，成为新增长极
+        <br>• 口播知识4月见顶后回落，赛道饱和度上升
+        </div>
+    </div>`;
+    document.getElementById("c3").innerHTML = h;
+}
+
+// boot
+renderCluster("");
+renderTrends();
+renderCompare();
+renderTimeline();
+</script>
+</body>
+</html>

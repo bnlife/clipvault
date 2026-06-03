@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Tab Test</title>
+<style>
+body { max-width:400px; margin:0 auto; font-family: sans-serif; }
+.tabs { display:flex; }
+.tab { flex:1; padding:10px; border:none; background:#eee; cursor:pointer; font-size:14px; }
+.tab.on { background:#0984e3; color:#fff; }
+.panel { display:none; padding:20px; }
+.panel.active { display:block; }
+</style>
+</head>
+<body>
+
+<h2>最简 Tab 测试</h2>
+<div class="tabs">
+    <button class="tab on" onclick="sw(0,this)">案例库</button>
+    <button class="tab" onclick="sw(1,this)">趋势</button>
+    <button class="tab" onclick="sw(2,this)">对比</button>
+</div>
+<div class="panel active" id="p0">✅ 这是案例库面板</div>
+<div class="panel" id="p1">✅ 这是趋势面板</div>
+<div class="panel" id="p2">✅ 这是对比面板</div>
+
+<script>
+function sw(idx, btn) {
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("on"));
+    btn.classList.add("on");
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("p"+idx).classList.add("active");
+    console.log("switched to panel", idx);
+}
+</script>
+</body>
+</html>

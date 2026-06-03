@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipVault Demo — 效果预览</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:16px; }
+body {
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #f8f8f8; color: #2d3436;
+    max-width: 420px; margin: 0 auto; min-height: 100vh;
+}
+header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; background:#fff; border-bottom:1px solid #e0e0e0;
+    position:sticky; top:0; z-index:10;
+}
+header h1 { font-size:18px; font-weight:700; color:#0984e3; }
+.btn { background:#0984e3; color:#fff; border:none; border-radius:6px;
+       padding:6px 12px; font-size:13px; cursor:pointer; }
+.search-bar { display:flex; gap:6px; padding:8px 14px; background:#fff; border-bottom:1px solid #e0e0e0; }
+.search-bar input { flex:1; border:1px solid #e0e0e0; border-radius:6px; padding:7px 8px; font-size:14px; }
+.search-bar select { border:1px solid #e0e0e0; border-radius:6px; padding:6px; font-size:13px; max-width:100px; background:#fff; }
+.stats { padding:6px 14px; font-size:12px; color:#636e72; background:#f0f0f0; display:flex; gap:12px; }
+.list { padding:6px 14px; }
+.card {
+    background:#fff; border-radius:8px; padding:10px 12px; margin-bottom:8px;
+    cursor:pointer; border:1px solid #e0e0e0;
+}
+.card:active { background:#f0f0f0; }
+.card-title { font-size:15px; font-weight:600; margin-bottom:2px; }
+.card-meta { font-size:11px; color:#636e72; margin-bottom:2px; display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+.tag { background:#e8f4fd; color:#0984e3; border-radius:3px; padding:1px 5px; font-size:10px; }
+.card-preview { font-size:12px; color:#636e72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.empty { text-align:center; padding:40px 20px; color:#b2bec3; font-size:14px; }
+.detail { position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:420px;
+          height:100%; background:#fff; z-index:20; overflow-y:auto; padding:14px; display:none; }
+.detail.show { display:block; }
+.detail h2 { font-size:17px; margin-bottom:4px; padding-right:30px; }
+.detail .meta { font-size:12px; color:#636e72; margin-bottom:12px; display:flex; gap:6px; flex-wrap:wrap; }
+.detail .content { font-size:14px; line-height:1.8; white-space:pre-wrap; word-break:break-word; }
+.back { background:none; border:none; font-size:22px; cursor:pointer; color:#636e72; position:absolute; top:14px; right:14px; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>ClipVault</h1>
+    <span style="font-size:13px;color:#636e72">12 条</span>
+</header>
+
+<div class="search-bar">
+    <input type="text" placeholder="搜索..." oninput="filter()">
+    <select onchange="filter()">
+        <option value="">全部标签</option>
+        <option>带货</option>
+        <option>口播</option>
+        <option>探店</option>
+        <option>美妆</option>
+        <option>运营</option>
+    </select>
+</div>
+
+<div class="stats">📊 总 12 条 | 本周 5 条 | 标签: 带货 口播 探店 美食 美妆</div>
+
+<div class="list" id="list"></div>
+
+<div class="detail" id="detail">
+    <button class="back" onclick="hideDetail()">✕</button>
+    <h2 id="dTitle"></h2>
+    <div class="meta" id="dMeta"></div>
+    <div class="content" id="dContent"></div>
+</div>
+
+<script>
+const DATA = [
+    {
+        title:"美妆带货 — 口红试色爆款分析",
+        date:"2026-06-03 14:30",
+        tags:["带货","美妆"],
+        content:`【视频概要】
+该视频为美妆带货类短视频，时长 45 秒，主要内容为口红试色对比。
+
+【用户画像】
+目标受众：18-35 岁女性，关注美妆护肤内容。
+
+【内容亮点】
+1. 前 3 秒抓人：直接上唇试色，无废话开场
+2. 对比展示：同一支口红在不同肤色上的效果，增强购买信心
+3. 价格锚点：先提专柜价 299，再说直播间 79，制造超值感
+
+【BGM 分析】
+使用热门卡点音乐，节奏轻快，与试色切换频率匹配。
+
+【转化分析】
+评论区高频词：链接、色号、怎么买。转化意图明显。
+
+【建议】
+可在第 15 秒加入优惠券弹窗提示，进一步刺激下单。`
+    },
+    {
+        title:"探店视频 — 成都火锅店",
+        date:"2026-06-03 10:15",
+        tags:["探店","美食"],
+        content:`【视频概要】
+成都本地探店博主探访春熙路新开火锅店，时长 1 分 20 秒。
+
+【内容结构】
+0-10s：店门口排队场景制造热闹感
+10-30s：后厨展示食材新鲜度
+30-60s：博主试吃点评（毛肚、鹅肠、锅底）
+60-80s：价格公布（人均 68）+ 地址引导
+
+【拍摄手法】
+手持运镜为主，灯光偏暖色调，突出红油锅底的色泽。
+
+【爆款因素】
+• "排队两小时"制造稀缺感
+• 人均 68 的价格对比春熙路地段形成强烈反差
+• 结尾引导收藏，评论区置顶地址
+
+【可复制点】
+适合其他城市探店博主套用：排队→后厨→试吃→价格→地址 五段法。`
+    },
+    {
+        title:"口播干货 — 短视频运营三要素",
+        date:"2026-06-02 20:00",
+        tags:["口播","运营"],
+        content:`【视频概要】
+知识口播类，单人正面镜头，时长 2 分钟，讲短视频运营的三个核心要素。
+
+【核心观点】
+1. 完播率 > 点赞数：前 3 秒决定 70% 的完播
+2. 评论区互动权重上升：2026 年算法更看重评论深度而非数量
+3. 发布时间窗口：工作日 12-13 点、20-22 点为最佳
+
+【表达风格】
+语速偏快（约 280 字/分钟），信息密度高，适合知识类受众。
+背景为纯白墙面 + 环形灯补光，画面简洁。
+
+【数据佐证】
+博主引用自身账号数据：黄金 3 秒留存率 68%，完播率 42%。
+
+【适用场景】
+可拆解为 3 条独立短内容，分别投放不同时段测试转化。`
+    },
+    {
+        title:"带货直播切片 — 厨房清洁神器",
+        date:"2026-06-02 16:45",
+        tags:["带货","家居"],
+        content:`【视频概要】
+直播切片，展示厨房清洁剂去油污效果，时长 35 秒。
+
+【套路拆解】
+• 视觉冲击：左边糊满油渍的灶台，右边一喷一抹就干净
+• 限时福利：视频发布后 2 小时内下单送替换装
+• 评论区控评：前 10 条评论均为已购好评
+
+【数据分析】
+点赞 2.3 万，评论 860，收藏 5200。
+收藏/点赞比 = 22.6%，远高于行业均值 5%，实用性驱动。
+预计带货转化率 3-5%。
+
+【可优化点】
+缺少真人出镜信任背书，可加入博主亲自试用镜头。`
+    },
+    {
+        title:"Vlog 日常 — 产品经理的一天",
+        date:"2026-06-01 22:00",
+        tags:["Vlog","职场"],
+        content:`【视频概要】
+职场 Vlog，产品经理记录一天工作流程。时长 3 分钟。
+
+【节奏分析】
+• 0-30s：起床+通勤，节奏舒缓建立代入感
+• 30-90s：上午会议+PRD 评审，信息密度高
+• 90-150s：午休+下午需求沟通，节奏回落
+• 150-180s：下班总结，金句收尾
+
+BGM 从轻快→紧张→舒缓，与内容节奏同步变化。
+
+【受众分析】
+评论热词：真实、我也这样、羡慕。受众主要为 25-35 岁互联网从业者。
+情感共鸣 > 信息增量，属于陪伴型内容。
+
+【差异化】
+同类 Vlog 多为大厂员工炫福利，这条突出真实压力，差异化明显。`
+    },
+];
+
+function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+let FILTERED = [...DATA];
+
+function renderList(data) {
+    const list = document.getElementById("list");
+    if (!data.length) {
+        list.innerHTML = '<div class="empty">暂无匹配结果</div>';
+        return;
+    }
+    list.innerHTML = data.map((e,i) => `
+        <div class="card" onclick="showDetail(${i})">
+            <div class="card-title">${esc(e.title)}</div>
+            <div class="card-meta">
+                <span>${e.date}</span>
+                ${e.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}
+            </div>
+            <div class="card-preview">${esc(e.content.slice(0,60))}...</div>
+        </div>
+    `).join("");
+}
+
+function showDetail(i) {
+    const e = FILTERED[i];
+    document.getElementById("dTitle").textContent = e.title;
+    document.getElementById("dMeta").innerHTML = `<span>${e.date}</span>${e.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}`;
+    document.getElementById("dContent").textContent = e.content;
+    document.getElementById("detail").classList.add("show");
+}
+
+function hideDetail() {
+    document.getElementById("detail").classList.remove("show");
+}
+
+function filter() {
+    const q = document.querySelector(".search-bar input").value.toLowerCase();
+    const tag = document.querySelector(".search-bar select").value;
+    FILTERED = DATA.filter(e => {
+        if (tag && !e.tags.includes(tag)) return false;
+        if (q && !e.title.includes(q) && !e.content.includes(q)) return false;
+        return true;
+    });
+    renderList(FILTERED);
+}
+
+renderList(DATA);
+</script>
+</body>
+</html>
